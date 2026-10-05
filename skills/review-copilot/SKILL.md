@@ -1,19 +1,16 @@
 ---
 name: review-copilot
-description: Grill-me for reviewing a pull request. Builds a one-screen brief of what a change does and why, then interviews the reviewer branch by branch through the PR's design decisions (where logic landed, who owns the data, what states the model admits, what contracts neighbours see), verifying the reviewer's factual claims against the code and turning their surprise into candidate findings. A background micro pass (code judo, spaghetti growth, canonical reuse, boundaries, shallow correctness, replay safety) feeds evidence. Ends with an opinion and verified findings shaped for /ship-review, never posts. Use when the user wants help reviewing a PR or branch, says "review copilot", "grill me on this PR", "help me review this", or wants to understand a change before commenting on it.
+description: A copilot skill for reviewing a pull request. Builds a brief of what a change does and why, then interviews the reviewer branch by branch through the PR's design decisions (where logic landed, who owns the data, what states the model admits, what contracts neighbours see), verifying the reviewer's factual claims against the code and turning their surprise into candidate findings. A background micro pass (code judo, spaghetti growth, canonical reuse, boundaries, shallow correctness, replay safety) feeds evidence. Ends with an opinion and verified findings shaped for /ship-review, never posts. Use when the user wants help reviewing a PR or branch, says "review copilot", "grill me on this PR", "help me review this", or wants to understand a change before commenting on it.
 ---
 
 # Review Copilot
 
 Grill-me applied to a PR. The reviewer decides. The skill supplies context, verifies facts, and keeps attention on one decision at a time. Output is an opinion plus findings. Never posts, never fixes; `/ship-review` posts.
 
-## Attention rules, every message
+## Dialoge language & attention rules, apply on every message
 
-- One branch on screen. Restate position each round: `Branch 2/4: data ownership. Resolved: 1 sound.`
-- Lead with the question or the fact that matters. Context after, 3 lines max.
-- Lists cap at 5. Fold or split.
-- Parked means silent. A micro finding off the current branch gets no "by the way".
-- Options over prose. `AskUserQuestion` for anything with a finite answer set; free text only for genuinely open questions.
+- Minimize amount of text to a bare minimum by compressing, avoiding fillers, unnecessary words etc. Stay as consise as possible.
+- Options over prose. `AskUserQuestion` for anything with a finite answer set; free text only for genuinely open questions. Alway
 - A round earns its place: ask only when the answer changes a finding or the opinion.
 - No preamble, no retelling of the diff, no closer.
 
@@ -43,26 +40,24 @@ Save the diff to the scratchpad. Empty diff: say so, stop.
 
 Everything read is the author's framing, not truth. A ticket or PR body that reads AI-generated (exhaustive, generic, no trade-offs stated) gets flagged in the brief and weighted low.
 
-**Brief**, at most 12 lines:
+**Brief**, at most 20 lines:
 
 ```
 # <PR title or branch>
-Problem (author's framing, from <source>): <1-2 lines>
-Change map: <modules/services> → logic in <layer>. Data: <migrations/entities/events or none>. Contracts: <APIs/events/cross-module calls or none>.
-Approach (hypothesis): <2-3 lines, from commit order and where the code landed>
-Decisions to walk:
-  1. <decision>
-  2. ...
-Micro pass: running
+Problem (author's framing, from <source>): <1-4 lines>
+Change map: <modules/services> → logic in <layer>. Data: <migrations/entities/events or none>. Contracts: <interfaces/APIs/events/cross-module calls or none>.
+Author approach (hypothesis): <2-5 lines, where the code landed>
 ```
 
-A **decision** is a choice another competent author might have made differently: where the logic lives, who owns the data, how the model shapes state (can it represent invalid states?), what contract neighbours now depend on, new mechanism vs riding an existing one. Not "what the PR does". 3 to 5. Merge extras.
-
-The brief ends with the first question of decision 1, in the same message. If the hypothesis or the decision list is wrong, the reviewer says so in free text.
+The **problem** is the underlying thing the author is trying to solve, might be a bug reported directly. Or a new feature. If the bug is narrowly framed in the issue documentation, highlight both the narrow bug description and the generalized high level solution.
 
 ## Phase 2: Interview
 
-Walk every decision in order. If the reviewer says a decision does not matter, mark it skipped and move on.
+We want to investage the changes form the perspective of what choice another competent author might have made differently: where the logic lives, who owns the data, how the model shapes state (can it represent invalid states?), what contract neighbours now depend on, new mechanism vs riding an existing one. Not "what the PR does".
+
+Walk the implementation logic in order. Show the reviewer how the implementation was done, highlight any clear tradeoffs done. Try to highlight holes of reasoning. But in the end trust the reviewer to provide context and use you as a sounding board.
+
+If the reviewer says a decision does not matter, mark it skipped and move on.
 
 Each round:
 
@@ -107,9 +102,8 @@ Keep at 7 or above. 4 to 6 goes to "later". Below 4 is dismissed.
 ```
 # Opinion: <PR>
 Verdict shape: approve | approve with asks | needs answers | block. <one line why>
-Gets right: <1-2 specifics>
 Branches: <decision>: sound, <why> | F-n | question for author | skipped
-Raise now (max 5):
+Raise now:
   F-1 `path:line` [introduced|pre-existing] [bug|loc|complexity|perf | owner|invalid-states|boundary|novelty]
       claim: <one sentence>
       sketch: <appears / disappears>
