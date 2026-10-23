@@ -52,7 +52,7 @@ Summary body is optional, but if needed follows the same voice. Max a line or tw
 
 Cut before you present. Reread each comment and delete every clause that doesnt change the ask: justification for the ask, restatement of the diff, softening preamble. If nothing got shorter, you didnt cut.
 
-Present every comment verbatim with its `path:line` anchor, plus the summary body and verdict. Then ask for the go via `AskUserQuestion` with a "let me edit first" option. Never post unasked.
+Always print the full review in chat first: every comment verbatim (none skipped, none summarized) with its `path:line` anchor, plus the summary body and verdict. Only after all of it is printed, ask for the go via `AskUserQuestion` with a "let me edit first" option. The comments go in the message, not only inside the question or its previews. Never post unasked.
 
 Anchor lines must exist in the diff or GitHub silently drops the comment. Read the file with line numbers to pin anchors; do not count by eye.
 
