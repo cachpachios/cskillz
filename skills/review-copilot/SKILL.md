@@ -1,6 +1,6 @@
 ---
 name: review-copilot
-description: A copilot skill for reviewing a pull request. Builds a brief of what a change does and why, then interviews the reviewer branch by branch through the PR's design decisions (where logic landed, who owns the data, what states the model admits, what contracts neighbours see), verifying the reviewer's factual claims against the code and turning their surprise into candidate findings. A background micro pass (code judo, spaghetti growth, canonical reuse, boundaries, shallow correctness, replay safety) feeds evidence. Ends with an opinion and verified findings shaped for /ship-review, never posts. Use when the user wants help reviewing a PR or branch, says "review copilot", "grill me on this PR", "help me review this", or wants to understand a change before commenting on it.
+description: A copilot skill for reviewing a pull request. Builds a brief of what a change does and why, then interviews the reviewer branch by branch through the PR's design decisions (where logic landed, who owns the data, what states the model admits, what contracts neighbours see), verifying the reviewer's factual claims against the code and turning their surprise into candidate findings. A background micro pass (creview's quality and bug lenses) feeds evidence. Ends with an opinion and verified findings shaped for /ship-review, never posts. Use when the user wants help reviewing a PR or branch, says "review copilot", "grill me on this PR", "help me review this", or wants to understand a change before commenting on it.
 ---
 
 # Review Copilot
@@ -28,7 +28,7 @@ git log --oneline "$MB"..HEAD; git diff "$MB"..HEAD --stat; git diff "$MB"..HEAD
 
 Save the diff to the scratchpad. Empty diff: say so, stop.
 
-**Micro pass, immediately, in the background.** One read-only agent (`Explore`). Prompt: read `<this skill dir>/micro-lens.md` in full, repo root, diff path, output path `<scratchpad>/micro.json`. Do not wait for it.
+**Micro pass, immediately, in the background.** Run creview's review step (`<this skill dir>/../creview/SKILL.md` §1 and §2) with base `$MB`: its two lens agents, in parallel. Review only; creview's fix and report steps never run here. Do not wait for them.
 
 **WHY sources.** All opportunistic, all non-authoritative. Detect an issue key (`[A-Z][A-Z0-9]+-[0-9]+`) in branch name, commits, PR title. If a fetch tool exists (Jira MCP, Linear MCP, `gh issue view`), read summary and description. Also read, when available:
 
@@ -69,7 +69,7 @@ Rules:
 
 - **Judgment is trusted, facts are verified.** "This is too complex" stands. "Service X already does this" gets grepped before anything builds on it. Corrections are flat, no apology.
 - **Reviewer questions are evidence.** If the code cannot answer a reviewer's question within one hop (one file, one grep), the design does not explain itself. Log it as a candidate finding. Answer the question either way, 3 lines max.
-- **Micro findings arriving mid-interview.** Read `micro.json` when the agent reports. A bug-shaped finding on the current branch: one line plus a question, or a probe when testing the reviewer's model is worth their time ("this handler re-runs on redelivery; what happens to X?"). Everything else stays parked. Judgment, not rule. The reviewer's time is the scarce resource.
+- **Micro findings arriving mid-interview.** Read each lens agent's findings when it reports. A `bug` finding on the current branch: one line plus a question, or a probe when testing the reviewer's model is worth their time ("this handler re-runs on redelivery; what happens to X?"). Everything else stays parked. Judgment, not rule. The reviewer's time is the scarce resource.
 - **Live exploration.** Every reviewer question is answered from this codebase, now. Never from memory of similar codebases.
 
 A branch is resolved when one holds:
@@ -90,7 +90,7 @@ Spawn one read-only verification agent per candidate, all in parallel, each give
 - Read `file:line` and enough context to judge independently.
 - Introduced or inherited? Read the pre-image. Inherited never blocks; downgrade.
 - Trace runtime claims to the end. A claimed failure needs the path that fails.
-- **Micro bar**, must pass one: removes a bug; reduces LoC (tests excluded); reduces complexity without adding LoC; improves performance or scalability without adding complexity.
+- **Micro bar**, must pass one item of creview's bar (`<creview dir>/SKILL.md` §2).
 - **Macro bar**, must pass one AND name the concrete cost (what breaks or gets harder later): wrong owner of data or logic; model admits invalid states; boundary or contract leak between modules or services; novel mechanism where an established one exists.
 - Dismiss: caught by compiler or linter; style or naming taste; pre-existing and untouched; speculative; "could be simpler" with no sketch; adds abstraction without removing a concept; contradicted by the digest.
 - Output: `{id, verdict: keep|later|dismiss, confidence 1-10, reasoning, ask}` where `ask` is the one question you would put to the author.
